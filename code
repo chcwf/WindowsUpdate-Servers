@@ -1,0 +1,27 @@
+#This first section use this as a common powershell file that all your servers will use to update themselves. You can setup a scheduled task on each server to do so
+
+#[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+#Install-PackageProvider -Name NuGet -confirm:$true
+#install-module pswindowsupdate -force
+
+New-PSDrive –Name “Y” –PSProvider FileSystem –Root “\\srv-fileserver\departments$\Information Technology\==IT Reports==\WindowsUpdateLogs”
+Remove-Item "Y:\$env:COMPUTERNAME.log"
+Get-WindowsUpdate -Install -AcceptAll -AutoReboot | Out-File "Y:\$env:COMPUTERNAME.log"
+
+#you can add "-AutoReboot" to restart server after patches that need them.
+==============================================================================================================================================================
+
+
+#Use this second session to kick start all of your servers scheduled task. I'm sure there is a better way to do all of this but its what my baby powershell mind came up with
+
+#Your file containing the names of your servers. 
+$servers = Get-Content 'C:\scripts\ps-serverupdate\servers.txt'
+
+#Shutdown all the VMs
+        foreach ($server in $servers)
+
+        {
+
+        start-scheduledtask -cimsession $server -taskname "WindowsUpdate"
+
+        }
